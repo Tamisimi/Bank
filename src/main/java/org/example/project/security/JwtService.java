@@ -2,14 +2,19 @@ package org.example.project.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.example.project.entity.TokenBlacklist;
+import org.example.project.repository.TokenBlacklistRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Service
 public class JwtService {
+
+    private final TokenBlacklistRepository tokenBlacklistRepository;
 
     @Value("${jwt.secret}")
     private String secret;
@@ -20,11 +25,15 @@ public class JwtService {
     @Value("${jwt.refresh.expiration}")
     private long refreshExpiration;  // 24 giờ
 
+    public JwtService(TokenBlacklistRepository tokenBlacklistRepository) {
+        this.tokenBlacklistRepository = tokenBlacklistRepository;
+    }
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    // Tạo Access Token (ngắn hạn)
+    // Tạo Access Token
     public String generateAccessToken(String username) {
         return Jwts.builder()
                 .subject(username)
@@ -34,7 +43,7 @@ public class JwtService {
                 .compact();
     }
 
-    // Tạo Refresh Token (dài hạn)
+    // Tạo Refresh Token
     public String generateRefreshToken(String username) {
         return Jwts.builder()
                 .subject(username)
@@ -72,9 +81,18 @@ public class JwtService {
         return expiration.before(new Date());
     }
 
-    // Blacklist (sẽ implement sau khi có TokenBlacklistRepository)
+    // === PHƯƠNG THỨC ĐÃ THÊM ĐỂ SỬA LỖI blacklistToken ===
+    public void blacklistToken(String token) {
+        TokenBlacklist blacklist = TokenBlacklist.builder()
+                .token(token)
+                .expiryDate(LocalDateTime.now().plusMinutes(5)) // theo thời hạn Access Token
+                .build();
+        tokenBlacklistRepository.save(blacklist);
+        System.out.println("[AUDIT] Token đã được đưa vào blacklist: " + token.substring(0, 20) + "...");
+    }
+
+    // Phương thức kiểm tra blacklist
     public boolean isTokenBlacklisted(String token) {
-        // TODO: Kiểm tra trong DB TokenBlacklist
-        return false;
+        return tokenBlacklistRepository.findByToken(token).isPresent();
     }
 }
