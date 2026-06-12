@@ -18,14 +18,13 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'STAFF')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'STAFF')")   // SỬA THÀNH hasAnyAuthority
     public ResponseEntity<Page<UserResponseDto>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(userService.getAllUsers(page, size));
     }
 
-    // FR-10: Đổi PIN / Quên mật khẩu (cơ bản)
     @PostMapping("/{id}/change-pin")
     public ResponseEntity<String> changePin(@PathVariable Long id, @RequestBody String newPin) {
         userService.changePin(id, newPin);

@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")   // ← Chuẩn SRS
 public class AuthController {
 
     private final AuthService authService;
@@ -17,7 +17,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest request) {   // Bỏ @Valid tạm thời
+    public ResponseEntity<AuthResponse> register(@RequestBody AuthRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -27,9 +27,10 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader(value = "Authorization", required = false) String token) {
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
+    public ResponseEntity<String> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        String token = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7).trim();
         }
         authService.logout(token);
         return ResponseEntity.ok("Đăng xuất thành công");
