@@ -44,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String username = jwtService.extractUsername(jwt);
 
         if (username != null && jwtService.isTokenValid(jwt, username)) {
-            // Authentication đơn giản (có thể nâng cao sau)
+            // Authentication đơn giản
             org.springframework.security.authentication.UsernamePasswordAuthenticationToken authToken =
                     new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(username, null, null);
             SecurityContextHolder.getContext().setAuthentication(authToken);
